@@ -1,0 +1,416 @@
+import { useState, useRef, useEffect } from "react";
+import {
+  FiMic,
+  FiStopCircle,
+  FiPlay,
+  FiTrash2,
+  FiSave,
+  FiLoader,
+  FiPause,
+  FiX,
+  FiAlertCircle,
+  FiRefreshCw,
+} from "react-icons/fi";
+import "./voicenotes.css";
+
+// Helper function to convert a blob to Base64
+const blobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+const VoiceNotes = () => {
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(null); // Tracks ID of playing note
+  const [noteName, setNoteName] = useState("");
+  const [audioURL, setAudioURL] = useState("");
+  const [error, setError] = useState("");
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // Tracks ID for delete confirmation
+  const [uploading, setUploading] = useState(false);
+
+  const mediaRecorder = useRef(null);
+  const audioChunks = useRef([]);
+  const audioRef = useRef(null); // For playing saved notes
+  const recordingTimer = useRef(null);
+
+  // Fetch voice notes from backend
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await fetch("/api/voicenotes");
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch notes. Server responded with ${response.status}: ${errorText}`
+        );
+      }
+      const data = await response.json();
+      setNotes(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch voice notes:", err);
+      setError(
+        "Could not load voice notes. Please check your network connection and if the server is running."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  // Clean up resources to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (audioURL) URL.revokeObjectURL(audioURL);
+      if (recordingTimer.current) clearInterval(recordingTimer.current);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [audioURL]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const startRecording = async () => {
+    try {
+      setError("");
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Your browser doesn't support audio recording.");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      mediaRecorder.current = new MediaRecorder(stream);
+      audioChunks.current = [];
+
+      mediaRecorder.current.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunks.current.push(event.data);
+      };
+
+      mediaRecorder.current.onstop = () => {
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
+        setAudioURL(URL.createObjectURL(audioBlob));
+        clearInterval(recordingTimer.current);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.current.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimer.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      setError(
+        err.name === "NotAllowedError"
+          ? "Microphone access was denied. Please allow it in your browser settings."
+          : "Could not access microphone. Please check permissions."
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder.current?.state === "recording") {
+      mediaRecorder.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const discardRecording = () => {
+    if (audioURL) {
+      URL.revokeObjectURL(audioURL);
+      setAudioURL("");
+      setNoteName("");
+    }
+    stopRecording();
+    setRecordingTime(0);
+  };
+
+  const saveRecording = async () => {
+    if (!audioURL || !noteName.trim()) return;
+
+    try {
+      setError("");
+      setUploading(true);
+
+      const response = await fetch(audioURL);
+      const blob = await response.blob();
+      const base64Audio = await blobToBase64(blob);
+      const base64Data = base64Audio.split(",")[1];
+
+      const payload = {
+        name: noteName.trim(),
+        audioData: base64Data,
+        date: new Date().toISOString(),
+      };
+
+      const res = await fetch("/api/voicenotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server error: ${res.status} - ${errorText}`);
+      }
+
+      const savedNote = await res.json();
+      setNotes((prev) => [savedNote, ...prev]);
+      discardRecording();
+    } catch (err) {
+      console.error("Error saving recording:", err);
+      setError(err.message || "Failed to save voice note. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const playNote = async (note) => {
+    if (isPlaying === note._id) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(null);
+      return;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    try {
+      setIsPlaying(note._id);
+      const audioSrc = `data:audio/webm;base64,${note.audioData}`;
+      audioRef.current = new Audio(audioSrc);
+
+      audioRef.current.onended = () => setIsPlaying(null);
+      audioRef.current.onerror = () => {
+        setError("Failed to play audio. The file may be corrupted.");
+        setIsPlaying(null);
+      };
+
+      await audioRef.current.play();
+    } catch (err) {
+      console.error("Playback error:", err);
+      setError("Unable to play this audio file.");
+      setIsPlaying(null);
+    }
+  };
+
+  const deleteNote = async (id) => {
+    try {
+      setError("");
+      const response = await fetch(`/api/voicenotes/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+
+      setNotes((prev) => prev.filter((note) => note._id !== id));
+      if (isPlaying === id) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        setIsPlaying(null);
+      }
+    } catch (err) {
+      console.error("Error deleting note:", err);
+      setError("Failed to delete voice note. Please try again.");
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  // The JSX remains the same as your original code
+  return (
+    <div className="voice-notes">
+      <div className="voice-notes-header">
+        <h2>Voice Notes</h2>
+        <p className="subtitle">Record important reminders in your own voice</p>
+      </div>
+
+      {error && (
+        <div className="error-message">
+          <FiAlertCircle className="error-icon" />
+          <span>{error}</span>
+          <div className="error-actions">
+            <button onClick={() => setError("")} className="dismiss-btn">
+              <FiX />
+            </button>
+            {error.includes("load") && (
+              <button onClick={fetchNotes} className="retry-btn">
+                <FiRefreshCw /> Retry
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="recording-section">
+        <div className="recording-controls">
+          {!isRecording && !audioURL ? (
+            <button
+              onClick={startRecording}
+              className="btn btn-primary record-btn"
+            >
+              <FiMic /> Start Recording
+            </button>
+          ) : isRecording ? (
+            <div className="recording-status">
+              <button
+                onClick={stopRecording}
+                className="btn btn-secondary stop-btn"
+              >
+                <FiStopCircle /> Stop Recording
+              </button>
+              <div className="recording-timer">
+                <div className="recording-indicator"></div>
+                <span>{formatTime(recordingTime)}</span>
+              </div>
+            </div>
+          ) : null}
+
+          {audioURL && !isRecording && (
+            <div className="recording-preview">
+              <h4>Preview Recording</h4>
+              <audio src={audioURL} controls className="audio-player" />
+              <div className="save-controls">
+                <input
+                  type="text"
+                  value={noteName}
+                  onChange={(e) => setNoteName(e.target.value)}
+                  placeholder="Name this recording"
+                  className="note-name-input"
+                  maxLength={50}
+                />
+                <div className="save-actions">
+                  <button
+                    onClick={saveRecording}
+                    className="btn btn-primary save-btn"
+                    disabled={!noteName.trim() || uploading}
+                  >
+                    {uploading ? <FiLoader className="spinner" /> : <FiSave />}
+                    {uploading ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    onClick={discardRecording}
+                    className="btn btn-secondary discard-btn"
+                    disabled={uploading}
+                  >
+                    Discard
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="saved-notes">
+        <div className="saved-notes-header">
+          <h3>Saved Voice Notes</h3>
+          {!loading && notes.length > 0 && (
+            <span className="notes-count">{notes.length} notes</span>
+          )}
+          <button
+            onClick={fetchNotes}
+            className="refresh-btn"
+            disabled={loading}
+          >
+            <FiRefreshCw className={loading ? "spinner" : ""} />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="loading-container">
+            <FiLoader className="spinner" />
+            <p>Loading voice notes...</p>
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🎤</div>
+            <p className="empty-message">No voice notes saved yet.</p>
+            <p className="empty-subtext">Record your first voice note above!</p>
+          </div>
+        ) : (
+          <ul className="notes-list">
+            {notes.map((note) => (
+              <li key={note._id} className="note-item">
+                <div className="note-info">
+                  <h4>{note.name}</h4>
+                  <span className="note-date">
+                    {new Date(note.date).toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="note-actions">
+                  <button
+                    onClick={() => playNote(note)}
+                    className={`play-btn ${
+                      isPlaying === note._id ? "playing" : ""
+                    }`}
+                  >
+                    {isPlaying === note._id ? <FiPause /> : <FiPlay />}
+                  </button>
+
+                  <button
+                    onClick={() => setShowDeleteConfirm(note._id)}
+                    className="delete-btn"
+                  >
+                    <FiTrash2 />
+                  </button>
+
+                  {showDeleteConfirm === note._id && (
+                    <div className="delete-confirm-overlay">
+                      <div className="delete-confirm">
+                        <p>Delete this note?</p>
+                        <div className="confirm-actions">
+                          <button
+                            onClick={() => deleteNote(note._id)}
+                            className="btn btn-danger confirm-delete"
+                          >
+                            Yes, Delete
+                          </button>
+                          <button
+                            onClick={() => setShowDeleteConfirm(null)}
+                            className="btn btn-secondary cancel-delete"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default VoiceNotes;
