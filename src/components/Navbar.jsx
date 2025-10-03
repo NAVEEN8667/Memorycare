@@ -8,16 +8,17 @@ const Navbar = () => {
     styleElement.id = 'navbar-internal-styles';
     styleElement.textContent = `
       .navbar {
-        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-        padding: 16px 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        padding: 20px 0;
+        box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
         position: sticky;
         top: 0;
         z-index: 1000;
+        backdrop-filter: blur(10px);
       }
 
       .navbar-container {
-        max-width: 1200px;
+        max-width: 1300px;
         margin: 0 auto;
         padding: 0 40px;
         display: flex;
@@ -27,38 +28,55 @@ const Navbar = () => {
 
       .navbar-logo {
         color: white;
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.75rem;
+        font-weight: 800;
         text-decoration: none;
-        letter-spacing: -0.3px;
-        transition: all 0.2s ease;
+        letter-spacing: -0.5px;
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
       }
 
       .navbar-logo:hover {
-        opacity: 0.9;
+        transform: scale(1.05);
       }
 
       .navbar-links {
         display: flex;
-        gap: 8px;
+        gap: 12px;
         align-items: center;
       }
 
       .navbar-link {
         color: white;
         text-decoration: none;
-        font-size: 0.95rem;
-        font-weight: 500;
-        padding: 8px 16px;
-        border-radius: 8px;
-        transition: all 0.2s ease;
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .navbar-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: white;
+        transition: width 0.3s ease;
       }
 
       .navbar-link:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .navbar-link:hover::after {
+        width: 60%;
       }
     `;
     
