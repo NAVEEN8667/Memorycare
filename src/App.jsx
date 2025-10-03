@@ -12,6 +12,9 @@ import CognitiveExercises from "./pages/CognitiveExercises";
 import ChatBot from "./pages/ChatBot";
 import Profile from "./pages/Profile";
 import FaceRecognition from "./pages/FaceRecognition";
+import VoiceRecognition from "./pages/VoiceRecognition";
+import AICompanion from "./pages/AICompanion";
+import AIFeatures from "./pages/AIFeatures";
 
 // Context
 import { AppProvider } from "./context/AppContext";
@@ -46,9 +49,12 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/daily-tasks" element={<DailyTasks />} />
             <Route path="/memory-aids" element={<MemoryAids />} />
+            <Route path="/ai-features" element={<AIFeatures />} />
             <Route path="/face-recognition" element={<FaceRecognition />} />
+            <Route path="/voice-recognition" element={<VoiceRecognition />} />
             <Route path="/exercises" element={<CognitiveExercises />} />
-            <Route path="/companion" element={<ChatBot />} />
+            <Route path="/companion" element={<AICompanion />} />
+            <Route path="/chatbot" element={<ChatBot />} />
             <Route path="/profile" element={<Profile />} />
 
             {/* Fallback route */}

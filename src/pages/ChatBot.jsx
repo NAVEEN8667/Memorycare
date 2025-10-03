@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { FiSend, FiMusic, FiBook, FiBell, FiHeart, FiAlertCircle } from 'react-icons/fi';
+import aiCompanionService from '../services/aiCompanionService';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [userName, setUserName] = useState('Friend');
+  const [showNameInput, setShowNameInput] = useState(true);
+  const [caregiverAlerts, setCaregiverAlerts] = useState([]);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
