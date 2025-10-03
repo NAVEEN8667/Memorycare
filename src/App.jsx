@@ -17,6 +17,11 @@ import { AppProvider } from "./context/AppContext";
 
 // Styles
 import './App.css';
+import DailyTasks from "./pages/DailyTasks";
+import Register from "./pages/Register";
+
+import  { useEffect } from "react"; 
+import axios from "axios";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +83,14 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={<Dashboard />} />
             
-            <Route path="/daily-tasks" element={<DailyTasks />} />
+            <Route 
+              path="/daily-tasks" 
+              element={
+                <ProtectedRoute>
+                  <DailyTasks />
+                </ProtectedRoute>
+              } 
+            />
             
             <Route path="/memory-aids" element={<MemoryAids />} />
             
@@ -94,6 +106,19 @@ function App() {
         
       </Router>
     </AppProvider>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/memory-aids" element={<MemoryAids />} />
+          <Route path="/daily-tasks" element={<DailyTasks />} />
+          <Route path="/register" element={<Register />} />
+    
+       
+
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
 
