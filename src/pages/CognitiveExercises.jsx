@@ -1,7 +1,6 @@
 import { useState } from "react";
 import MemoryGame from "../components/cognitive-exercises/MemoryGame";
-import WordRecall from "../components/cognitive-exercises/WordRecall";
-import "./cognitiveexercises.css"; // Assuming you have a CSS file for styling
+import WordRecall from "../components/cognitive-exercises/WordRecall"; // Assuming you have a CSS file for styling
 
 const CognitiveExercises = () => {
   const [activeTab, setActiveTab] = useState("memory");

@@ -1,6 +1,5 @@
 // src/pages/Profile.jsx
 import { useState } from "react";
-import "./profile.css";
 // Assuming you have a CSS file for styling
 
 const Profile = () => {

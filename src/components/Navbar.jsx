@@ -1,134 +1,95 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
 const Navbar = () => {
-  const styles = {
-    navbar: {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px 0',
-      boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)',
-      position: 'sticky',
-      top: '0',
-      zIndex: '1000',
-      backdropFilter: 'blur(10px)'
-    },
-    container: {
-      maxWidth: '1400px',
-      margin: '0 auto',
-      padding: '0 40px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    },
-    logo: {
-      color: 'white',
-      fontSize: '1.8rem',
-      fontWeight: '800',
-      textDecoration: 'none',
-      letterSpacing: '-0.5px',
-      textShadow: '2px 2px 8px rgba(0,0,0,0.2)',
-      transition: 'all 0.3s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px'
-    },
-    navLinks: {
-      display: 'flex',
-      gap: '30px',
-      alignItems: 'center'
-    },
-    navLink: {
-      color: 'white',
-      textDecoration: 'none',
-      fontSize: '1.1rem',
-      fontWeight: '600',
-      padding: '10px 20px',
-      borderRadius: '25px',
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      overflow: 'hidden'
-    }
-  };
+  useEffect(() => {
+    // Add internal CSS to the document
+    const styleElement = document.createElement('style');
+    styleElement.id = 'navbar-internal-styles';
+    styleElement.textContent = `
+      .navbar {
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+        padding: 16px 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .navbar-logo {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: -0.3px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .navbar-logo:hover {
+        opacity: 0.9;
+      }
+
+      .navbar-links {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .navbar-link {
+        color: white;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .navbar-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    `;
+    
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      // Cleanup: remove the style element when component unmounts
+      const existingStyle = document.getElementById('navbar-internal-styles');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
 
   return (
-    <nav style={styles.navbar}>
-      <div style={styles.container}>
-        <Link 
-          to="/" 
-          style={styles.logo}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.textShadow = '3px 3px 12px rgba(0,0,0,0.4)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.textShadow = '2px 2px 8px rgba(0,0,0,0.2)';
-          }}
-        >
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo">
           💙 Elderly Care Assistant
         </Link>
-        <div style={styles.navLinks}>
-          <Link 
-            to="/memory-aids" 
-            style={styles.navLink}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
+        <div className="navbar-links">
+          <Link to="/memory-aids" className="navbar-link">
             Memory Aids
           </Link>
-          <Link 
-            to="/daily-tasks" 
-            style={styles.navLink}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
+          <Link to="/daily-tasks" className="navbar-link">
             Daily Tasks
           </Link>
-          <Link 
-            to="/cognitive-exercises" 
-            style={styles.navLink}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
+          <Link to="/cognitive-exercises" className="navbar-link">
             Exercises
           </Link>
-          <Link 
-            to="/profile" 
-            style={styles.navLink}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
+          <Link to="/profile" className="navbar-link">
             Profile
           </Link>
         </div>

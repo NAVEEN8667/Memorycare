@@ -1,8 +1,7 @@
 import { useState } from "react";
 import PhotoGallery from "../components/memory-aids/PhotoGallery";
 import ReminderList from "../components/memory-aids/ReminderList";
-import VoiceNotes from "../components/memory-aids/VoiceNotes";
-import "../pages/memoryaids.css"; 
+import VoiceNotes from "../components/memory-aids/VoiceNotes"; 
 
 const MemoryAids = () => {
   const [activeTab, setActiveTab] = useState("photos");
