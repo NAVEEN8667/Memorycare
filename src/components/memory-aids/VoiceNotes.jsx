@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "../../supabaseClient";
 import {
   FiMic,
   FiStopCircle,
@@ -12,52 +13,50 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 
-// Helper function to convert a blob to Base64
-const blobToBase64 = (blob) => {
-  return new Promise((resolve, reject) => {
+
+
+// Helper: convert blob to base64
+const blobToBase64 = (blob) =>
+  new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
-};
 
 const VoiceNotes = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(null); // Tracks ID of playing note
+  const [isPlaying, setIsPlaying] = useState(null);
   const [noteName, setNoteName] = useState("");
   const [audioURL, setAudioURL] = useState("");
   const [error, setError] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // Tracks ID for delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);
-  const audioRef = useRef(null); // For playing saved notes
+  const audioRef = useRef(null);
   const recordingTimer = useRef(null);
 
-  // Fetch voice notes from backend
+  // Fetch notes from Supabase
   const fetchNotes = async () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("/api/voicenotes");
+      const { data, error: supaError } = await supabase
+        .from("voice_notes")
+        .select("*")
+        .order("date", { ascending: false });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Failed to fetch notes. Server responded with ${response.status}: ${errorText}`
-        );
-      }
-      const data = await response.json();
+      if (supaError) throw supaError;
       setNotes(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch voice notes:", err);
       setError(
-        "Could not load voice notes. Please check your network connection and if the server is running."
+        "Could not load voice notes. Check your network or Supabase setup."
       );
     } finally {
       setLoading(false);
@@ -68,7 +67,7 @@ const VoiceNotes = () => {
     fetchNotes();
   }, []);
 
-  // Clean up resources to prevent memory leaks
+  // Clean up audio resources
   useEffect(() => {
     return () => {
       if (audioURL) URL.revokeObjectURL(audioURL);
@@ -88,19 +87,19 @@ const VoiceNotes = () => {
       .padStart(2, "0")}`;
   };
 
+  // Start recording
   const startRecording = async () => {
     try {
       setError("");
-      if (!navigator.mediaDevices?.getUserMedia) {
+      if (!navigator.mediaDevices?.getUserMedia)
         throw new Error("Your browser doesn't support audio recording.");
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
       audioChunks.current = [];
 
-      mediaRecorder.current.ondataavailable = (event) => {
-        if (event.data.size > 0) audioChunks.current.push(event.data);
+      mediaRecorder.current.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.current.push(e.data);
       };
 
       mediaRecorder.current.onstop = () => {
@@ -113,15 +112,16 @@ const VoiceNotes = () => {
       mediaRecorder.current.start();
       setIsRecording(true);
       setRecordingTime(0);
+
       recordingTimer.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (err) {
-      console.error("Error accessing microphone:", err);
+      console.error("Microphone access error:", err);
       setError(
         err.name === "NotAllowedError"
-          ? "Microphone access was denied. Please allow it in your browser settings."
-          : "Could not access microphone. Please check permissions."
+          ? "Microphone access denied. Please allow it."
+          : "Could not access microphone."
       );
     }
   };
@@ -134,15 +134,14 @@ const VoiceNotes = () => {
   };
 
   const discardRecording = () => {
-    if (audioURL) {
-      URL.revokeObjectURL(audioURL);
-      setAudioURL("");
-      setNoteName("");
-    }
+    if (audioURL) URL.revokeObjectURL(audioURL);
+    setAudioURL("");
+    setNoteName("");
     stopRecording();
     setRecordingTime(0);
   };
 
+  // Save recording to Supabase
   const saveRecording = async () => {
     if (!audioURL || !noteName.trim()) return;
 
@@ -155,62 +154,54 @@ const VoiceNotes = () => {
       const base64Audio = await blobToBase64(blob);
       const base64Data = base64Audio.split(",")[1];
 
-      const payload = {
-        name: noteName.trim(),
-        audioData: base64Data,
-        date: new Date().toISOString(),
-      };
+      const { data, error: supaError } = await supabase
+        .from("voice_notes")
+        .insert([
+          {
+            name: noteName.trim(),
+            audio_data: base64Data,
+            date: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
 
-      const res = await fetch("/api/voicenotes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      if (supaError) throw supaError;
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Server error: ${res.status} - ${errorText}`);
-      }
-
-      const savedNote = await res.json();
-      setNotes((prev) => [savedNote, ...prev]);
+      setNotes((prev) => [data, ...prev]);
       discardRecording();
     } catch (err) {
       console.error("Error saving recording:", err);
-      setError(err.message || "Failed to save voice note. Please try again.");
+      setError("Failed to save voice note. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
   const playNote = async (note) => {
-    if (isPlaying === note._id) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+    if (isPlaying === note.id || isPlaying === note._id) {
+      if (audioRef.current) audioRef.current.pause();
       setIsPlaying(null);
       return;
     }
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    if (audioRef.current) audioRef.current.pause();
 
     try {
-      setIsPlaying(note._id);
-      const audioSrc = `data:audio/webm;base64,${note.audioData}`;
+      setIsPlaying(note.id || note._id);
+      const audioSrc = `data:audio/webm;base64,${note.audio_data}`;
       audioRef.current = new Audio(audioSrc);
 
       audioRef.current.onended = () => setIsPlaying(null);
       audioRef.current.onerror = () => {
-        setError("Failed to play audio. The file may be corrupted.");
+        setError("Failed to play audio. File may be corrupted.");
         setIsPlaying(null);
       };
 
       await audioRef.current.play();
     } catch (err) {
       console.error("Playback error:", err);
-      setError("Unable to play this audio file.");
+      setError("Unable to play this audio.");
       setIsPlaying(null);
     }
   };
@@ -218,31 +209,28 @@ const VoiceNotes = () => {
   const deleteNote = async (id) => {
     try {
       setError("");
-      const response = await fetch(`/api/voicenotes/${id}`, {
-        method: "DELETE",
-      });
+      const { error: supaError } = await supabase
+        .from("voice_notes")
+        .delete()
+        .eq("id", id);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
-      }
+      if (supaError) throw supaError;
 
-      setNotes((prev) => prev.filter((note) => note._id !== id));
+      setNotes((prev) =>
+        prev.filter((note) => note.id !== id && note._id !== id)
+      );
       if (isPlaying === id) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
+        if (audioRef.current) audioRef.current.pause();
         setIsPlaying(null);
       }
     } catch (err) {
       console.error("Error deleting note:", err);
-      setError("Failed to delete voice note. Please try again.");
+      setError("Failed to delete voice note.");
     } finally {
       setShowDeleteConfirm(null);
     }
   };
 
-  // The JSX remains the same as your original code
   return (
     <div className="voice-notes">
       <div className="voice-notes-header">
@@ -252,14 +240,14 @@ const VoiceNotes = () => {
 
       {error && (
         <div className="error-message" role="status" aria-live="polite">
-          <FiAlertCircle className="error-icon" />
+          <FiAlertCircle />
           <span>{error}</span>
           <div className="error-actions">
-            <button onClick={() => setError("")} className="dismiss-btn" aria-label="Dismiss message">
+            <button onClick={() => setError("")} className="dismiss-btn">
               <FiX />
             </button>
             {error.includes("load") && (
-              <button onClick={fetchNotes} className="retry-btn" aria-label="Retry loading notes">
+              <button onClick={fetchNotes} className="retry-btn">
                 <FiRefreshCw /> Retry
               </button>
             )}
@@ -268,154 +256,79 @@ const VoiceNotes = () => {
       )}
 
       <div className="recording-section">
-        <div className="recording-controls">
-          {!isRecording && !audioURL ? (
-            <button
-              onClick={startRecording}
-              className="btn btn-primary record-btn"
-              aria-label="Start recording"
-            >
-              <FiMic /> Start Recording
+        {!isRecording && !audioURL ? (
+          <button onClick={startRecording} className="btn btn-primary">
+            <FiMic /> Start Recording
+          </button>
+        ) : isRecording ? (
+          <div className="recording-status">
+            <button onClick={stopRecording} className="btn btn-secondary">
+              <FiStopCircle /> Stop Recording
             </button>
-          ) : isRecording ? (
-            <div className="recording-status">
-              <button
-                onClick={stopRecording}
-                className="btn btn-secondary stop-btn"
-                aria-label="Stop recording"
-              >
-                <FiStopCircle /> Stop Recording
-              </button>
-              <div className="recording-timer">
-                <div className="recording-indicator"></div>
-                <span>{formatTime(recordingTime)}</span>
-              </div>
-            </div>
-          ) : null}
-
-          {audioURL && !isRecording && (
+            <span>{formatTime(recordingTime)}</span>
+          </div>
+        ) : (
+          audioURL && (
             <div className="recording-preview">
-              <h4>Preview Recording</h4>
-              <audio src={audioURL} controls className="audio-player" />
-              <div className="save-controls">
-                <input
-                  type="text"
-                  value={noteName}
-                  onChange={(e) => setNoteName(e.target.value)}
-                  placeholder="Name this recording"
-                  className="note-name-input"
-                  maxLength={50}
-                  aria-label="Recording name"
-                />
-                <div className="save-actions">
-                  <button
-                    onClick={saveRecording}
-                    className="btn btn-primary save-btn"
-                    disabled={!noteName.trim() || uploading}
-                    aria-label="Save recording"
-                  >
-                    {uploading ? <FiLoader className="spinner" /> : <FiSave />}
-                    {uploading ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    onClick={discardRecording}
-                    className="btn btn-secondary discard-btn"
-                    disabled={uploading}
-                    aria-label="Discard recording"
-                  >
-                    Discard
-                  </button>
-                </div>
-              </div>
+              <audio src={audioURL} controls />
+              <input
+                type="text"
+                placeholder="Name this recording"
+                value={noteName}
+                onChange={(e) => setNoteName(e.target.value)}
+              />
+              <button
+                onClick={saveRecording}
+                disabled={!noteName.trim() || uploading}
+              >
+                {uploading ? <FiLoader /> : <FiSave />} Save
+              </button>
+              <button onClick={discardRecording} disabled={uploading}>
+                Discard
+              </button>
             </div>
-          )}
-        </div>
+          )
+        )}
       </div>
 
       <div className="saved-notes">
-        <div className="saved-notes-header">
-          <h3>Saved Voice Notes</h3>
-          {!loading && notes.length > 0 && (
-            <span className="notes-count">{notes.length} notes</span>
-          )}
-          <button
-            onClick={fetchNotes}
-            className="refresh-btn"
-            disabled={loading}
-            aria-label="Refresh notes"
-          >
-            <FiRefreshCw className={loading ? "spinner" : ""} />
-          </button>
-        </div>
+        <h3>Saved Voice Notes</h3>
+        <button onClick={fetchNotes}>Refresh</button>
 
         {loading ? (
-          <div className="loading-container">
-            <FiLoader className="spinner" />
-            <p>Loading voice notes...</p>
+          <div>
+            <FiLoader /> Loading notes...
           </div>
         ) : notes.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🎤</div>
-            <p className="empty-message">No voice notes saved yet.</p>
-            <p className="empty-subtext">Record your first voice note above!</p>
-          </div>
+          <p>No voice notes yet.</p>
         ) : (
-          <ul className="notes-list">
-            {notes
-              .slice()
-              .sort((a, b) => new Date(b.date) - new Date(a.date))
-              .map((note) => (
-              <li key={note._id} className="note-item">
-                <div className="note-info">
-                  <h4>{note.name}</h4>
-                  <span className="note-date">
-                    {new Date(note.date).toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="note-actions">
-                  <button
-                    onClick={() => playNote(note)}
-                    className={`play-btn ${
-                      isPlaying === note._id ? "playing" : ""
-                    }`}
-                    aria-label={isPlaying === note._id ? "Pause note" : "Play note"}
-                  >
-                    {isPlaying === note._id ? <FiPause /> : <FiPlay />}
-                  </button>
-
-                  <button
-                    onClick={() => setShowDeleteConfirm(note._id)}
-                    className="delete-btn"
-                    aria-label="Delete note"
-                  >
-                    <FiTrash2 />
-                  </button>
-
-                  {showDeleteConfirm === note._id && (
-                    <div className="delete-confirm-overlay">
-                      <div className="delete-confirm">
-                        <p>Delete this note?</p>
-                        <div className="confirm-actions">
-                          <button
-                            onClick={() => deleteNote(note._id)}
-                            className="btn btn-danger confirm-delete"
-                            aria-label="Confirm delete note"
-                          >
-                            Yes, Delete
-                          </button>
-                          <button
-                            onClick={() => setShowDeleteConfirm(null)}
-                            className="btn btn-secondary cancel-delete"
-                            aria-label="Cancel delete"
-                          >
-                            No
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+          <ul>
+            {notes.map((note) => (
+              <li key={note.id || note._id}>
+                <span>{note.name}</span>
+                <button onClick={() => playNote(note)}>
+                  {isPlaying === (note.id || note._id) ? (
+                    <FiPause />
+                  ) : (
+                    <FiPlay />
                   )}
-                </div>
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(note.id || note._id)}
+                >
+                  <FiTrash2 />
+                </button>
+                {showDeleteConfirm === (note.id || note._id) && (
+                  <div>
+                    <p>Delete this note?</p>
+                    <button onClick={() => deleteNote(note.id || note._id)}>
+                      Yes
+                    </button>
+                    <button onClick={() => setShowDeleteConfirm(null)}>
+                      No
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -423,6 +336,6 @@ const VoiceNotes = () => {
       </div>
     </div>
   );
-}
+};
 
 export default VoiceNotes;

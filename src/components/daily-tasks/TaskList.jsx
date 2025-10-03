@@ -7,6 +7,7 @@ import {
   FiX,
   FiLoader,
 } from "react-icons/fi";
+import { supabase } from "../../supabaseClient";
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
@@ -16,43 +17,21 @@ const TaskList = () => {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
 
-  const API_BASE_URL = "http://localhost:5000";
-
-  // Fetch tasks from backend
+  // Fetch tasks
   const fetchTasks = async () => {
     try {
       setLoading(true);
       setError("");
-      console.log("Fetching tasks from backend...");
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .order("created_at", { ascending: true });
 
-      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      console.log("Tasks response status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server response:", errorText);
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text();
-        throw new Error(`Expected JSON but got: ${contentType}`);
-      }
-
-      const data = await response.json();
-      console.log("Tasks data:", data);
+      if (error) throw error;
       setTasks(data);
     } catch (err) {
-      console.error("Failed to fetch tasks:", err);
-      setError(
-        "Could not load tasks. Please make sure the backend server is running on port 5000."
-      );
+      console.error(err);
+      setError("Failed to fetch tasks from Supabase.");
     } finally {
       setLoading(false);
     }
@@ -68,93 +47,52 @@ const TaskList = () => {
       setError("Please enter a task");
       return;
     }
-
     try {
       setError("");
-      console.log("Adding task:", newTask);
-
-      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ text: newTask.trim() }),
-      });
-
-      console.log("Add task response status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Add task error response:", errorText);
-        throw new Error(`Failed to add task: ${response.status}`);
-      }
-
-      const savedTask = await response.json();
-      console.log("Saved task:", savedTask);
-
-      setTasks([...tasks, savedTask]);
+      const { data, error } = await supabase
+        .from("tasks")
+        .insert([{ text: newTask.trim() }])
+        .select();
+      if (error) throw error;
+      setTasks([...tasks, data[0]]);
       setNewTask("");
     } catch (err) {
-      console.error("Error adding task:", err);
-      setError(
-        err.message ||
-          "Failed to add task. Please check if the backend is running."
-      );
+      console.error(err);
+      setError("Failed to add task.");
     }
   };
 
   // Toggle task completion
-  const toggleTask = async (id) => {
+  const toggleTask = async (id, completed) => {
     try {
-      setError("");
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${id}/toggle`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update task: ${response.status}`);
-      }
-
-      const updatedTask = await response.json();
-      setTasks(tasks.map((task) => (task._id === id ? updatedTask : task)));
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ completed: !completed })
+        .eq("id", id)
+        .select();
+      if (error) throw error;
+      setTasks(tasks.map((t) => (t.id === id ? data[0] : t)));
     } catch (err) {
-      console.error("Error toggling task:", err);
-      setError("Failed to update task status.");
+      console.error(err);
+      setError("Failed to update task.");
     }
   };
 
   // Delete task
   const deleteTask = async (id) => {
     try {
-      setError("");
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to delete task: ${response.status}`);
-      }
-
-      setTasks(tasks.filter((task) => task._id !== id));
+      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      if (error) throw error;
+      setTasks(tasks.filter((t) => t.id !== id));
     } catch (err) {
-      console.error("Error deleting task:", err);
-      setError("Failed to delete task. Please try again.");
+      console.error(err);
+      setError("Failed to delete task.");
     }
   };
 
-  // Start editing task
+  // Start editing
   const startEdit = (task) => {
-    setEditingId(task._id);
+    setEditingId(task.id);
     setEditText(task.text);
   };
 
@@ -170,44 +108,19 @@ const TaskList = () => {
       setError("Task cannot be empty");
       return;
     }
-
     try {
-      setError("");
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ text: editText.trim() }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update task: ${response.status}`);
-      }
-
-      const updatedTask = await response.json();
-      setTasks(tasks.map((task) => (task._id === id ? updatedTask : task)));
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ text: editText.trim() })
+        .eq("id", id)
+        .select();
+      if (error) throw error;
+      setTasks(tasks.map((t) => (t.id === id ? data[0] : t)));
       setEditingId(null);
       setEditText("");
     } catch (err) {
-      console.error("Error updating task:", err);
-      setError("Failed to update task. Please try again.");
-    }
-  };
-
-  // Test backend connection
-  const testBackendConnection = async () => {
-    try {
-      setError("");
-      const response = await fetch(`${API_BASE_URL}/api/test`);
-      const data = await response.json();
-      setError("Backend connection successful! " + data.message);
-    } catch (err) {
-      setError(
-        "Backend connection failed. Make sure the server is running on port 5000."
-      );
+      console.error(err);
+      setError("Failed to update task.");
     }
   };
 
@@ -225,21 +138,13 @@ const TaskList = () => {
   return (
     <div className="task-list">
       <h2>Daily Task Manager (Elderly Care)</h2>
-      <p>Simple to-do list for daily activities</p>
 
       {error && (
-        <div className="error-message" role="status" aria-live="polite">
+        <div className="error-message">
           <span>{error}</span>
-          <div className="error-actions">
-            <button onClick={() => setError("")} className="dismiss-btn" aria-label="Dismiss message">
-              <FiX />
-            </button>
-            {error.includes("backend") && (
-              <button onClick={testBackendConnection} className="test-btn" aria-label="Test backend connection">
-                Test Connection
-              </button>
-            )}
-          </div>
+          <button onClick={() => setError("")}>
+            <FiX />
+          </button>
         </div>
       )}
 
@@ -249,80 +154,45 @@ const TaskList = () => {
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
           placeholder="Enter a new task..."
-          className="task-input"
           onKeyPress={(e) => e.key === "Enter" && addTask()}
-          aria-label="New task"
         />
-        <button onClick={addTask} className="btn btn-primary" aria-label="Add task">
+        <button onClick={addTask}>
           <FiPlus /> Add Task
         </button>
       </div>
 
       <div className="tasks-container">
         {tasks.length === 0 ? (
-          <div className="empty-state">
-            <p>No tasks yet. Add your first task above!</p>
-            <button onClick={fetchTasks} className="btn btn-primary">
-              <FiLoader /> Refresh
-            </button>
-          </div>
+          <p>No tasks yet.</p>
         ) : (
           tasks.map((task) => (
             <div
-              key={task._id}
+              key={task.id}
               className={`task-item ${task.completed ? "completed" : ""}`}
             >
-              {editingId === task._id ? (
-                <div className="edit-form">
+              {editingId === task.id ? (
+                <>
                   <input
                     type="text"
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
-                    className="edit-input"
-                    onKeyPress={(e) => e.key === "Enter" && saveEdit(task._id)}
+                    onKeyPress={(e) => e.key === "Enter" && saveEdit(task.id)}
                   />
-                  <div className="edit-actions">
-                    <button
-                      onClick={() => saveEdit(task._id)}
-                      className="btn btn-primary"
-                    >
-                      Save
-                    </button>
-                    <button onClick={cancelEdit} className="btn btn-secondary">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+                  <button onClick={() => saveEdit(task.id)}>Save</button>
+                  <button onClick={cancelEdit}>Cancel</button>
+                </>
               ) : (
                 <>
-                  <div className="task-content">
-                    <button
-                      onClick={() => toggleTask(task._id)}
-                      className={`status-btn ${
-                        task.completed ? "completed" : ""
-                      }`}
-                      aria-label={task.completed ? "Mark as not done" : "Mark as done"}
-                    >
-                      <FiCheck />
-                    </button>
-                    <span className="task-text">{task.text}</span>
-                  </div>
-                  <div className="task-actions">
-                    <button
-                      onClick={() => startEdit(task)}
-                      className="edit-btn"
-                      aria-label="Edit task"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={() => deleteTask(task._id)}
-                      className="delete-btn"
-                      aria-label="Delete task"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
+                  <button onClick={() => toggleTask(task.id, task.completed)}>
+                    <FiCheck />
+                  </button>
+                  <span>{task.text}</span>
+                  <button onClick={() => startEdit(task)}>
+                    <FiEdit />
+                  </button>
+                  <button onClick={() => deleteTask(task.id)}>
+                    <FiTrash2 />
+                  </button>
                 </>
               )}
             </div>

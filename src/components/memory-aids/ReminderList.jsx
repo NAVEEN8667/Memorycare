@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { supabase } from "../../supabaseClient";
 import { FiPlus, FiBell, FiTrash2, FiX } from "react-icons/fi";
 
 const ReminderList = () => {
@@ -7,22 +7,33 @@ const ReminderList = () => {
   const [newReminder, setNewReminder] = useState("");
   const [newTime, setNewTime] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Fetch reminders
+  const fetchReminders = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const { data, error } = await supabase
+        .from("reminders")
+        .select("*")
+        .order("time", { ascending: true });
+
+      if (error) throw error;
+      setReminders(data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load reminders.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchReminders = async () => {
-      try {
-        setError("");
-        const res = await axios.get("http://localhost:5000/api/reminders");
-        setReminders(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Error fetching reminders:", err);
-        setError("Could not load reminders. Please make sure the server is running.");
-      }
-    };
-
     fetchReminders();
   }, []);
 
+  // Add new reminder
   const addReminder = async () => {
     if (!newReminder.trim() || !newTime) {
       setError("Please enter reminder text and time.");
@@ -30,47 +41,53 @@ const ReminderList = () => {
     }
     try {
       setError("");
-      const res = await axios.post("http://localhost:5000/api/reminders", {
-        text: newReminder.trim(),
-        time: newTime,
-      });
-      setReminders([res.data, ...reminders]);
+      const { data, error } = await supabase
+        .from("reminders")
+        .insert([{ text: newReminder.trim(), time: newTime }])
+        .select();
+
+      if (error) throw error;
+      setReminders([data[0], ...reminders]);
       setNewReminder("");
       setNewTime("");
     } catch (err) {
-      console.error("Error adding reminder:", err);
-      setError("Failed to add reminder. Please try again.");
+      console.error(err);
+      setError("Failed to add reminder.");
     }
   };
 
+  // Toggle reminder active status
   const toggleReminder = async (id, currentStatus) => {
     try {
       setError("");
-      const res = await axios.patch(
-        `http://localhost:5000/api/reminders/${id}`,
-        {
-          active: !currentStatus,
-        }
-      );
-      setReminders(
-        reminders.map((reminder) => (reminder._id === id ? res.data : reminder))
-      );
+      const { data, error } = await supabase
+        .from("reminders")
+        .update({ active: !currentStatus })
+        .eq("id", id)
+        .select();
+
+      if (error) throw error;
+      setReminders(reminders.map((r) => (r.id === id ? data[0] : r)));
     } catch (err) {
-      console.error("Error toggling reminder:", err);
-      setError("Failed to update reminder. Please try again.");
+      console.error(err);
+      setError("Failed to update reminder.");
     }
   };
 
+  // Delete reminder
   const deleteReminder = async (id) => {
     try {
       setError("");
-      await axios.delete(`http://localhost:5000/api/reminders/${id}`);
-      setReminders(reminders.filter((reminder) => reminder._id !== id));
+      const { error } = await supabase.from("reminders").delete().eq("id", id);
+      if (error) throw error;
+      setReminders(reminders.filter((r) => r.id !== id));
     } catch (err) {
-      console.error("Error deleting reminder:", err);
-      setError("Failed to delete reminder. Please try again.");
+      console.error(err);
+      setError("Failed to delete reminder.");
     }
   };
+
+  if (loading) return <p>Loading reminders...</p>;
 
   return (
     <div className="reminder-list">
@@ -78,9 +95,9 @@ const ReminderList = () => {
       <p>Set simple time-based alerts for daily needs</p>
 
       {error && (
-        <div className="error-message" role="status" aria-live="polite">
+        <div className="error-message">
           <span>{error}</span>
-          <button className="dismiss-btn" onClick={() => setError("")} aria-label="Dismiss message">
+          <button onClick={() => setError("")}>
             <FiX />
           </button>
         </div>
@@ -92,30 +109,25 @@ const ReminderList = () => {
           value={newReminder}
           onChange={(e) => setNewReminder(e.target.value)}
           placeholder="Reminder text..."
-          aria-label="Reminder text"
         />
         <input
           type="time"
           value={newTime}
           onChange={(e) => setNewTime(e.target.value)}
-          aria-label="Reminder time"
         />
-        <button onClick={addReminder} className="btn btn-primary" aria-label="Add reminder">
+        <button onClick={addReminder}>
           <FiPlus /> Add
         </button>
       </div>
 
       <ul className="reminders">
-        {reminders
-          .slice()
-          .sort((a, b) => String(a.time).localeCompare(String(b.time)))
-          .map((reminder) => (
+        {reminders.map((reminder) => (
           <li
-            key={reminder._id}
+            key={reminder.id}
             className={reminder.active ? "active" : "inactive"}
           >
             <div className="reminder-info">
-              <FiBell className="bell-icon" />
+              <FiBell />
               <div>
                 <span className="reminder-time">{reminder.time}</span>
                 <span className="reminder-text">{reminder.text}</span>
@@ -123,17 +135,11 @@ const ReminderList = () => {
             </div>
             <div className="reminder-actions">
               <button
-                onClick={() => toggleReminder(reminder._id, reminder.active)}
-                className="toggle-btn"
-                aria-label={reminder.active ? "Disable reminder" : "Enable reminder"}
+                onClick={() => toggleReminder(reminder.id, reminder.active)}
               >
                 {reminder.active ? "Disable" : "Enable"}
               </button>
-              <button
-                onClick={() => deleteReminder(reminder._id)}
-                className="delete-btn"
-                aria-label="Delete reminder"
-              >
+              <button onClick={() => deleteReminder(reminder.id)}>
                 <FiTrash2 />
               </button>
             </div>
@@ -142,6 +148,6 @@ const ReminderList = () => {
       </ul>
     </div>
   );
-}
+};
 
 export default ReminderList;
