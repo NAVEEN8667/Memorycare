@@ -5,7 +5,7 @@ import axios from "axios";
 // Layout & Pages
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
+
 import DailyTasks from "./pages/DailyTasks";
 import MemoryAids from "./pages/MemoryAids";
 import CognitiveExercises from "./pages/CognitiveExercises";
@@ -42,7 +42,7 @@ function App() {
             />
 
             {/* App Routes (public for now) */}
-            <Route path="/dashboard" element={<Dashboard />} />
+         
             <Route path="/daily-tasks" element={<DailyTasks />} />
             <Route path="/memory-aids" element={<MemoryAids />} />
             <Route path="/exercises" element={<CognitiveExercises />} />

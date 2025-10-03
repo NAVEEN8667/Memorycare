@@ -121,9 +121,7 @@ const Navbar = () => {
           💙 Elderly Care Assistant
         </Link>
         <div className="navbar-links">
-          <Link to="/dashboard" className="navbar-link">
-            Dashboard
-          </Link>
+         
           <Link to="/memory-aids" className="navbar-link">
             Memory Aids
           </Link>
