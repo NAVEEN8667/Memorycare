@@ -1,36 +1,59 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import Home from "./pages/Home";
-import MemoryAids from "./pages/MemoryAids";
-import DailyTasks from "./pages/DailyTasks";
-
-import Profile from "./pages/Profile";
-import  { useEffect } from "react"; 
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
+// Layout & Pages
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import DailyTasks from "./pages/DailyTasks";
+import MemoryAids from "./pages/MemoryAids";
+import CognitiveExercises from "./pages/CognitiveExercises";
+import ChatBot from "./pages/ChatBot";
+import Profile from "./pages/Profile";
+
+// Context
+import { AppProvider } from "./context/AppContext";
+
+// Styles
+import './App.css';
+
 function App() {
-  
-useEffect(() => {
-  axios
-    .get("http://localhost:5000/api/test")
-    .then((res) => console.log(res.data))
-    .catch((err) => console.error(err));
-}, []);
+  // Make routes public for now to avoid auth-related navigation issues
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/memory-aids" element={<MemoryAids />} />
-          <Route path="/daily-tasks" element={<DailyTasks />} />
-      
-          <Route path="/profile" element={<Profile />} />
-       
+    <AppProvider>
+      <Router>
+        <Navbar
+          isAuthenticated={isAuthenticated}
+          setIsAuthenticated={setIsAuthenticated}
+        />
+          <Routes>
+            {/* Public Routes */}
+            <Route 
+              path="/" 
+              element={
+                <Home 
+                  isAuthenticated={isAuthenticated} 
+                  setIsAuthenticated={setIsAuthenticated} 
+                />
+              } 
+            />
 
-        </Routes>
-      </Layout>
-    </Router>
+            {/* App Routes (public for now) */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/daily-tasks" element={<DailyTasks />} />
+            <Route path="/memory-aids" element={<MemoryAids />} />
+            <Route path="/exercises" element={<CognitiveExercises />} />
+            <Route path="/companion" element={<ChatBot />} />
+            <Route path="/profile" element={<Profile />} />
+
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+      </Router>
+    </AppProvider>
   );
 }
 

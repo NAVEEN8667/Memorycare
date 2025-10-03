@@ -224,18 +224,18 @@ const TaskList = () => {
 
   return (
     <div className="task-list">
-      <h2>Task Manager</h2>
-      <p>Organize your daily tasks and stay productive</p>
+      <h2>Daily Task Manager (Elderly Care)</h2>
+      <p>Simple to-do list for daily activities</p>
 
       {error && (
-        <div className="error-message">
+        <div className="error-message" role="status" aria-live="polite">
           <span>{error}</span>
           <div className="error-actions">
-            <button onClick={() => setError("")} className="dismiss-btn">
+            <button onClick={() => setError("")} className="dismiss-btn" aria-label="Dismiss message">
               <FiX />
             </button>
             {error.includes("backend") && (
-              <button onClick={testBackendConnection} className="test-btn">
+              <button onClick={testBackendConnection} className="test-btn" aria-label="Test backend connection">
                 Test Connection
               </button>
             )}
@@ -251,8 +251,9 @@ const TaskList = () => {
           placeholder="Enter a new task..."
           className="task-input"
           onKeyPress={(e) => e.key === "Enter" && addTask()}
+          aria-label="New task"
         />
-        <button onClick={addTask} className="btn btn-primary">
+        <button onClick={addTask} className="btn btn-primary" aria-label="Add task">
           <FiPlus /> Add Task
         </button>
       </div>
@@ -300,6 +301,7 @@ const TaskList = () => {
                       className={`status-btn ${
                         task.completed ? "completed" : ""
                       }`}
+                      aria-label={task.completed ? "Mark as not done" : "Mark as done"}
                     >
                       <FiCheck />
                     </button>
@@ -309,12 +311,14 @@ const TaskList = () => {
                     <button
                       onClick={() => startEdit(task)}
                       className="edit-btn"
+                      aria-label="Edit task"
                     >
                       <FiEdit />
                     </button>
                     <button
                       onClick={() => deleteTask(task._id)}
                       className="delete-btn"
+                      aria-label="Delete task"
                     >
                       <FiTrash2 />
                     </button>

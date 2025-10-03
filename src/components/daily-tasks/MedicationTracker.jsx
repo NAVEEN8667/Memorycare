@@ -234,18 +234,18 @@ const MedicationTracker = () => {
 
   return (
     <div className="medication-tracker">
-      <h2>Medication Tracker</h2>
-      <p>Track your daily medications and dosages</p>
+      <h2>Medication Tracker (Elderly Care)</h2>
+      <p>Simple, clear tracker for daily medicines and dosages</p>
 
       {error && (
-        <div className="error-message">
+        <div className="error-message" role="status" aria-live="polite">
           <span>{error}</span>
           <div className="error-actions">
-            <button onClick={() => setError("")} className="dismiss-btn">
+            <button onClick={() => setError("")} className="dismiss-btn" aria-label="Dismiss message">
               <FiX />
             </button>
             {error.includes("backend") && (
-              <button onClick={testBackendConnection} className="test-btn">
+              <button onClick={testBackendConnection} className="test-btn" aria-label="Test backend connection">
                 Test Connection
               </button>
             )}
@@ -260,6 +260,7 @@ const MedicationTracker = () => {
           onChange={(e) => setNewMed({ ...newMed, name: e.target.value })}
           placeholder="Medication name"
           className="med-input"
+          aria-label="Medication name"
         />
         <input
           type="text"
@@ -267,14 +268,16 @@ const MedicationTracker = () => {
           onChange={(e) => setNewMed({ ...newMed, dosage: e.target.value })}
           placeholder="Dosage"
           className="med-input"
+          aria-label="Dosage"
         />
         <input
           type="time"
           value={newMed.time}
           onChange={(e) => setNewMed({ ...newMed, time: e.target.value })}
           className="med-input"
+          aria-label="Time to take medication"
         />
-        <button onClick={addMedication} className="btn btn-primary">
+        <button onClick={addMedication} className="btn btn-primary" aria-label="Add medication">
           <FiPlus /> Add
         </button>
       </div>
@@ -283,12 +286,15 @@ const MedicationTracker = () => {
         {medications.length === 0 ? (
           <div className="empty-state">
             <p>No medications added yet.</p>
-            <button onClick={fetchMedications} className="btn btn-primary">
+            <button onClick={fetchMedications} className="btn btn-primary" aria-label="Refresh medications">
               <FiLoader /> Refresh
             </button>
           </div>
         ) : (
-          medications.map((med) => (
+          medications
+            .slice()
+            .sort((a, b) => String(a.time).localeCompare(String(b.time)))
+            .map((med) => (
             <div
               key={med._id}
               className={`medication-card ${med.taken ? "taken" : ""}`}
@@ -303,6 +309,7 @@ const MedicationTracker = () => {
                     }
                     placeholder="Medication name"
                     className="edit-input"
+                    aria-label="Edit medication name"
                   />
                   <input
                     type="text"
@@ -312,6 +319,7 @@ const MedicationTracker = () => {
                     }
                     placeholder="Dosage"
                     className="edit-input"
+                    aria-label="Edit dosage"
                   />
                   <input
                     type="time"
@@ -320,15 +328,17 @@ const MedicationTracker = () => {
                       setEditMed({ ...editMed, time: e.target.value })
                     }
                     className="edit-input"
+                    aria-label="Edit time"
                   />
                   <div className="edit-actions">
                     <button
                       onClick={() => saveEdit(med._id)}
                       className="btn btn-primary"
+                      aria-label="Save changes"
                     >
                       Save
                     </button>
-                    <button onClick={cancelEdit} className="btn btn-secondary">
+                    <button onClick={cancelEdit} className="btn btn-secondary" aria-label="Cancel editing">
                       Cancel
                     </button>
                   </div>
@@ -354,6 +364,7 @@ const MedicationTracker = () => {
                     <button
                       onClick={() => toggleTaken(med._id)}
                       className={`status-btn ${med.taken ? "taken" : ""}`}
+                      aria-label={med.taken ? "Mark as not taken" : "Mark as taken"}
                     >
                       <FiCheck /> {med.taken ? "Taken" : "Mark Taken"}
                     </button>
@@ -361,12 +372,14 @@ const MedicationTracker = () => {
                       <button
                         onClick={() => startEdit(med)}
                         className="edit-btn"
+                        aria-label="Edit medication"
                       >
                         <FiEdit />
                       </button>
                       <button
                         onClick={() => deleteMedication(med._id)}
                         className="delete-btn"
+                        aria-label="Delete medication"
                       >
                         <FiTrash2 />
                       </button>
@@ -380,6 +393,6 @@ const MedicationTracker = () => {
       </div>
     </div>
   );
-};
+}
 
 export default MedicationTracker;

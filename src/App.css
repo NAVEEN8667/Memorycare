@@ -1,0 +1,3 @@
+/* App-level styles for Elderly Care Assistant */
+.app-loading, .loading { padding: 24px; text-align: center; color: #6b7280; }
+.loading { display: inline-flex; align-items: center; gap: 8px; }

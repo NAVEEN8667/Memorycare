@@ -6,15 +6,18 @@ const PhotoGallery = () => {
   const [photos, setPhotos] = useState([]);
   const [newPhoto, setNewPhoto] = useState(null);
   const [tagName, setTagName] = useState("");
+  const [error, setError] = useState("");
 
   // Fetch photos on component mount
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
+        setError("");
         const res = await axios.get("http://localhost:5000/api/photos");
-        setPhotos(res.data); // assuming response is an array of photos
+        setPhotos(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Error fetching photos:", err);
+        setError("Could not load photos. Please check if the server is running.");
       }
     };
 
@@ -38,6 +41,7 @@ const PhotoGallery = () => {
   const addPhoto = async () => {
     if (newPhoto) {
       try {
+        setError("");
         const res = await axios.post("http://localhost:5000/api/photos", {
           name: newPhoto.name,
           imageData: newPhoto.url,
@@ -48,18 +52,39 @@ const PhotoGallery = () => {
         setTagName("");
       } catch (err) {
         console.error("Error saving photo to DB:", err);
+        setError("Failed to save photo. Please try again.");
       }
+    }
+  };
+
+  const deletePhoto = async (id) => {
+    try {
+      setError("");
+      await axios.delete(`http://localhost:5000/api/photos/${id}`);
+      setPhotos((prev) => prev.filter((p) => (p._id || p.id) !== id));
+    } catch (err) {
+      console.error("Error deleting photo:", err);
+      setError("Failed to delete photo. Please try again.");
     }
   };
 
   return (
     <div className="photo-gallery">
-      <h2>Photo Gallery</h2>
-      <p>Add photos of important people and places with names</p>
+      <h2>Photo Gallery (Elderly Care)</h2>
+      <p>Add photos of important people and places with large, readable labels</p>
+
+      {error && (
+        <div className="error-message" role="status" aria-live="polite">
+          <span>{error}</span>
+          <button className="dismiss-btn" onClick={() => setError("")} aria-label="Dismiss message">
+            <FiX />
+          </button>
+        </div>
+      )}
 
       <div className="upload-section">
         <div className="upload-controls">
-          <label className="upload-btn">
+          <label className="upload-btn" aria-label="Select a photo to upload">
             <input type="file" accept="image/*" onChange={handlePhotoUpload} />
             <FiPlus /> Select Photo
           </label>
@@ -68,9 +93,10 @@ const PhotoGallery = () => {
             placeholder="Tag name (e.g., My Daughter)"
             value={tagName}
             onChange={(e) => setTagName(e.target.value)}
+            aria-label="Name for the photo"
           />
           {newPhoto && (
-            <button onClick={addPhoto} className="btn btn-primary">
+            <button onClick={addPhoto} className="btn btn-primary" aria-label="Add photo">
               Add Photo
             </button>
           )}
@@ -78,7 +104,7 @@ const PhotoGallery = () => {
 
         {newPhoto && (
           <div className="photo-preview">
-            <img src={newPhoto.url} alt="Preview" />
+            <img src={newPhoto.url} alt="Selected photo preview" />
             <span>{newPhoto.name}</span>
           </div>
         )}
@@ -88,12 +114,12 @@ const PhotoGallery = () => {
         {photos.map((photo) => (
           <div key={photo._id || photo.id} className="photo-card">
             <div className="photo-actions">
-              <button className="delete-btn">
+              <button className="delete-btn" aria-label="Delete photo" onClick={() => deletePhoto(photo._id || photo.id)}>
                 <FiX />
               </button>
             </div>
             <div className="photo-container">
-              <img src={photo.imageData} alt={photo.name} />
+              <img src={photo.imageData} alt={photo.name || "Photo"} />
             </div>
             <div className="photo-tag">
               <FiUser /> {photo.name}
@@ -103,6 +129,6 @@ const PhotoGallery = () => {
       </div>
     </div>
   );
-};
+}
 
 export default PhotoGallery;
