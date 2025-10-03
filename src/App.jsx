@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 // Layout & Pages
-import Layout from "./components/Layout";
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import DailyTasks from "./pages/DailyTasks";
@@ -59,7 +59,10 @@ function App() {
   return (
     <AppProvider>
       <Router>
-        <Layout isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated}>
+        <Navbar
+          isAuthenticated={isAuthenticated}
+          setIsAuthenticated={setIsAuthenticated}
+        />
           <Routes>
             {/* Public Routes */}
             <Route 
@@ -73,64 +76,22 @@ function App() {
             />
 
             {/* Protected Routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/dashboard" element={<Dashboard />} />
             
-            <Route 
-              path="/daily-tasks" 
-              element={
-                <ProtectedRoute>
-                  <DailyTasks />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/daily-tasks" element={<DailyTasks />} />
             
-            <Route 
-              path="/memory-aids" 
-              element={
-                <ProtectedRoute>
-                  <MemoryAids />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/memory-aids" element={<MemoryAids />} />
             
-            <Route 
-              path="/exercises" 
-              element={
-                <ProtectedRoute>
-                  <CognitiveExercises />
-                </ProtectedRoute>
-              } 
-            />
             
-            <Route 
-              path="/companion" 
-              element={
-                <ProtectedRoute>
-                  <ChatBot />
-                </ProtectedRoute>
-              } 
-            />
             
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/companion" element={<ChatBot />} />
+            
+            <Route path="/profile" element={<Profile />} />
 
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Layout>
+        
       </Router>
     </AppProvider>
   );

@@ -68,6 +68,22 @@ const Navbar = () => {
         </Link>
         <div style={styles.navLinks}>
           <Link 
+            to="/dashboard" 
+            style={styles.navLink}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            Dashboard
+          </Link>
+          <Link 
             to="/memory-aids" 
             style={styles.navLink}
             onMouseEnter={(e) => {
@@ -99,22 +115,7 @@ const Navbar = () => {
           >
             Daily Tasks
           </Link>
-          <Link 
-            to="/cognitive-exercises" 
-            style={styles.navLink}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            Exercises
-          </Link>
+       
           <Link 
             to="/profile" 
             style={styles.navLink}
@@ -131,8 +132,26 @@ const Navbar = () => {
           >
             Profile
           </Link>
+          <Link 
+            to="/companion" 
+            style={styles.navLink}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            Companion
+          </Link>
         </div>
       </div>
     </nav>
   );
 }
+
+export default Navbar;
