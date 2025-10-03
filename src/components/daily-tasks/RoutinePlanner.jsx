@@ -223,20 +223,20 @@ const RoutinePlanner = () => {
 
   return (
     <div className="routine-planner">
-      <h2>Daily Routine Planner</h2>
+      <h2>Daily Routine Planner (Elderly Care)</h2>
       <p className="subtitle">
         Create a structured daily routine to help maintain consistency
       </p>
 
       {error && (
-        <div className="error-message">
+        <div className="error-message" role="status" aria-live="polite">
           <span>{error}</span>
           <div className="error-actions">
-            <button onClick={() => setError("")} className="dismiss-btn">
+            <button onClick={() => setError("")} className="dismiss-btn" aria-label="Dismiss message">
               <FiX />
             </button>
             {error.includes("backend") && (
-              <button onClick={testBackendConnection} className="test-btn">
+              <button onClick={testBackendConnection} className="test-btn" aria-label="Test backend connection">
                 Test Connection
               </button>
             )}
@@ -254,6 +254,7 @@ const RoutinePlanner = () => {
               setNewRoutine({ ...newRoutine, time: e.target.value })
             }
             required
+            aria-label="Routine time"
           />
         </div>
 
@@ -267,6 +268,7 @@ const RoutinePlanner = () => {
             }
             placeholder="e.g., Take medication, Walk, Lunch"
             required
+            aria-label="Routine activity"
           />
         </div>
 
@@ -278,6 +280,7 @@ const RoutinePlanner = () => {
               onChange={(e) =>
                 setNewRoutine({ ...newRoutine, important: e.target.checked })
               }
+              aria-label="Mark as important"
             />
             Important (highlight)
           </label>
@@ -286,15 +289,15 @@ const RoutinePlanner = () => {
         <div className="form-actions">
           {editingId ? (
             <>
-              <button onClick={saveRoutine} className="btn btn-primary">
+              <button onClick={saveRoutine} className="btn btn-primary" aria-label="Update routine">
                 <FiCheck /> Update
               </button>
-              <button onClick={cancelEditing} className="btn btn-secondary">
+              <button onClick={cancelEditing} className="btn btn-secondary" aria-label="Cancel editing">
                 Cancel
               </button>
             </>
           ) : (
-            <button onClick={saveRoutine} className="btn btn-primary">
+            <button onClick={saveRoutine} className="btn btn-primary" aria-label="Add activity">
               <FiPlus /> Add Activity
             </button>
           )}
@@ -341,7 +344,7 @@ const RoutinePlanner = () => {
                   <button
                     onClick={() => startEditing(routine)}
                     className="edit-btn"
-                    aria-label="Edit"
+                    aria-label="Edit routine"
                   >
                     <FiEdit2 />
                   </button>
@@ -349,7 +352,7 @@ const RoutinePlanner = () => {
                   <button
                     onClick={() => deleteRoutine(routine._id)}
                     className="delete-btn"
-                    aria-label="Delete"
+                    aria-label="Delete routine"
                   >
                     <FiTrash2 />
                   </button>
@@ -360,6 +363,6 @@ const RoutinePlanner = () => {
       </div>
     </div>
   );
-};
+}
 
 export default RoutinePlanner;

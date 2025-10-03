@@ -247,20 +247,20 @@ const VoiceNotes = () => {
   return (
     <div className="voice-notes">
       <div className="voice-notes-header">
-        <h2>Voice Notes</h2>
-        <p className="subtitle">Record important reminders in your own voice</p>
+        <h2>Voice Notes (Elderly Care)</h2>
+        <p className="subtitle">Record simple reminders in your own voice</p>
       </div>
 
       {error && (
-        <div className="error-message">
+        <div className="error-message" role="status" aria-live="polite">
           <FiAlertCircle className="error-icon" />
           <span>{error}</span>
           <div className="error-actions">
-            <button onClick={() => setError("")} className="dismiss-btn">
+            <button onClick={() => setError("")} className="dismiss-btn" aria-label="Dismiss message">
               <FiX />
             </button>
             {error.includes("load") && (
-              <button onClick={fetchNotes} className="retry-btn">
+              <button onClick={fetchNotes} className="retry-btn" aria-label="Retry loading notes">
                 <FiRefreshCw /> Retry
               </button>
             )}
@@ -274,6 +274,7 @@ const VoiceNotes = () => {
             <button
               onClick={startRecording}
               className="btn btn-primary record-btn"
+              aria-label="Start recording"
             >
               <FiMic /> Start Recording
             </button>
@@ -282,6 +283,7 @@ const VoiceNotes = () => {
               <button
                 onClick={stopRecording}
                 className="btn btn-secondary stop-btn"
+                aria-label="Stop recording"
               >
                 <FiStopCircle /> Stop Recording
               </button>
@@ -304,12 +306,14 @@ const VoiceNotes = () => {
                   placeholder="Name this recording"
                   className="note-name-input"
                   maxLength={50}
+                  aria-label="Recording name"
                 />
                 <div className="save-actions">
                   <button
                     onClick={saveRecording}
                     className="btn btn-primary save-btn"
                     disabled={!noteName.trim() || uploading}
+                    aria-label="Save recording"
                   >
                     {uploading ? <FiLoader className="spinner" /> : <FiSave />}
                     {uploading ? "Saving..." : "Save"}
@@ -318,6 +322,7 @@ const VoiceNotes = () => {
                     onClick={discardRecording}
                     className="btn btn-secondary discard-btn"
                     disabled={uploading}
+                    aria-label="Discard recording"
                   >
                     Discard
                   </button>
@@ -338,6 +343,7 @@ const VoiceNotes = () => {
             onClick={fetchNotes}
             className="refresh-btn"
             disabled={loading}
+            aria-label="Refresh notes"
           >
             <FiRefreshCw className={loading ? "spinner" : ""} />
           </button>
@@ -356,7 +362,10 @@ const VoiceNotes = () => {
           </div>
         ) : (
           <ul className="notes-list">
-            {notes.map((note) => (
+            {notes
+              .slice()
+              .sort((a, b) => new Date(b.date) - new Date(a.date))
+              .map((note) => (
               <li key={note._id} className="note-item">
                 <div className="note-info">
                   <h4>{note.name}</h4>
@@ -371,6 +380,7 @@ const VoiceNotes = () => {
                     className={`play-btn ${
                       isPlaying === note._id ? "playing" : ""
                     }`}
+                    aria-label={isPlaying === note._id ? "Pause note" : "Play note"}
                   >
                     {isPlaying === note._id ? <FiPause /> : <FiPlay />}
                   </button>
@@ -378,6 +388,7 @@ const VoiceNotes = () => {
                   <button
                     onClick={() => setShowDeleteConfirm(note._id)}
                     className="delete-btn"
+                    aria-label="Delete note"
                   >
                     <FiTrash2 />
                   </button>
@@ -390,12 +401,14 @@ const VoiceNotes = () => {
                           <button
                             onClick={() => deleteNote(note._id)}
                             className="btn btn-danger confirm-delete"
+                            aria-label="Confirm delete note"
                           >
                             Yes, Delete
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(null)}
                             className="btn btn-secondary cancel-delete"
+                            aria-label="Cancel delete"
                           >
                             No
                           </button>
@@ -411,6 +424,6 @@ const VoiceNotes = () => {
       </div>
     </div>
   );
-};
+}
 
 export default VoiceNotes;
