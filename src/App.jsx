@@ -17,49 +17,10 @@ import { AppProvider } from "./context/AppContext";
 
 // Styles
 import './App.css';
-import DailyTasks from "./pages/DailyTasks";
-import Register from "./pages/Register";
-
-import  { useEffect } from "react"; 
-import axios from "axios";
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  // Make routes public for now to avoid auth-related navigation issues
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Check authentication status on app load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('elderlyCareToken');
-        if (token) {
-          const response = await axios.get("http://localhost:5000/api/auth/verify", {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (response.data.valid) {
-            setIsAuthenticated(true);
-          }
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem('elderlyCareToken');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  // Protected Route Component
-  const ProtectedRoute = ({ children }) => {
-    if (isLoading) return <div className="loading">Loading...</div>;
-    return isAuthenticated ? children : <Navigate to="/" replace />;
-  };
-
-  if (isLoading) {
-    return <div className="app-loading">Loading Elderly Care Assistant...</div>;
-  }
 
   return (
     <AppProvider>
@@ -80,45 +41,19 @@ function App() {
               } 
             />
 
-            {/* Protected Routes */}
+            {/* App Routes (public for now) */}
             <Route path="/dashboard" element={<Dashboard />} />
-            
-            <Route 
-              path="/daily-tasks" 
-              element={
-                <ProtectedRoute>
-                  <DailyTasks />
-                </ProtectedRoute>
-              } 
-            />
-            
+            <Route path="/daily-tasks" element={<DailyTasks />} />
             <Route path="/memory-aids" element={<MemoryAids />} />
-            
-            
-            
+            <Route path="/exercises" element={<CognitiveExercises />} />
             <Route path="/companion" element={<ChatBot />} />
-            
             <Route path="/profile" element={<Profile />} />
 
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        
       </Router>
     </AppProvider>
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/memory-aids" element={<MemoryAids />} />
-          <Route path="/daily-tasks" element={<DailyTasks />} />
-          <Route path="/register" element={<Register />} />
-    
-       
-
-        </Routes>
-      </Layout>
-    </Router>
   );
 }
 
