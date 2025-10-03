@@ -3,8 +3,8 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import MemoryAids from "./pages/MemoryAids";
 import DailyTasks from "./pages/DailyTasks";
+import Register from "./pages/Register";
 
-import Profile from "./pages/Profile";
 import  { useEffect } from "react"; 
 import axios from "axios";
 
@@ -24,8 +24,8 @@ useEffect(() => {
           <Route path="/" element={<Home />} />
           <Route path="/memory-aids" element={<MemoryAids />} />
           <Route path="/daily-tasks" element={<DailyTasks />} />
-      
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/register" element={<Register />} />
+    
        
 
         </Routes>
