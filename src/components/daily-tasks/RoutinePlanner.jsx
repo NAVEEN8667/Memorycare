@@ -8,9 +8,285 @@ import {
   FiLoader,
   FiX,
 } from "react-icons/fi";
-import "./routineplanner.css";
 
 const RoutinePlanner = () => {
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'routine-planner-styles';
+    styleElement.textContent = `
+      .routine-planner {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .routine-planner h2 {
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        color: #6b7280;
+        margin-bottom: 24px;
+      }
+
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        color: #6b7280;
+      }
+
+      .spinner {
+        animation: spin 1s linear infinite;
+        font-size: 2rem;
+        margin-bottom: 12px;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      .error-message {
+        background: #fee2e2;
+        border: 1px solid #fca5a5;
+        color: #991b1b;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .error-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .dismiss-btn, .test-btn {
+        background: transparent;
+        border: none;
+        color: #991b1b;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+      }
+
+      .dismiss-btn:hover, .test-btn:hover {
+        background: rgba(0,0,0,0.1);
+      }
+
+      .routine-form {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      .form-group label {
+        display: block;
+        color: #374151;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+
+      .form-group input[type="time"],
+      .form-group input[type="text"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #4F46E5;
+      }
+
+      .checkbox-group label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .checkbox-group input[type="checkbox"] {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #4F46E5;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #4338ca;
+      }
+
+      .btn-secondary {
+        background: #e5e7eb;
+        color: #374151;
+      }
+
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
+
+      .routine-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+      }
+
+      .empty-state p {
+        margin-bottom: 16px;
+      }
+
+      .routine-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.2s;
+      }
+
+      .routine-item:hover {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .routine-item.completed {
+        opacity: 0.6;
+        background: #f9fafb;
+      }
+
+      .routine-item.important {
+        border-left: 4px solid #ef4444;
+      }
+
+      .routine-time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #4F46E5;
+        font-weight: 600;
+        min-width: 100px;
+      }
+
+      .routine-activity {
+        flex: 1;
+        color: #1f2937;
+      }
+
+      .routine-item.completed .routine-activity {
+        text-decoration: line-through;
+      }
+
+      .routine-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .status-btn, .edit-btn, .delete-btn {
+        background: transparent;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .status-btn {
+        color: #6b7280;
+      }
+
+      .status-btn.completed {
+        background: #10b981;
+        border-color: #10b981;
+        color: white;
+      }
+
+      .status-btn:hover {
+        background: #10b981;
+        border-color: #10b981;
+        color: white;
+      }
+
+      .edit-btn {
+        color: #4F46E5;
+      }
+
+      .edit-btn:hover {
+        background: #4F46E5;
+        border-color: #4F46E5;
+        color: white;
+      }
+
+      .delete-btn {
+        color: #ef4444;
+      }
+
+      .delete-btn:hover {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: white;
+      }
+    `;
+    
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      const existingStyle = document.getElementById('routine-planner-styles');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
+
   const [routines, setRoutines] = useState([]);
   const [newRoutine, setNewRoutine] = useState({
     time: "",

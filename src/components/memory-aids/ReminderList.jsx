@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FiPlus, FiBell, FiTrash2, FiX } from "react-icons/fi";
+import { FiPlus, FiBell, FiTrash2 } from "react-icons/fi";
 import "./reminderlist.css";
 
 const ReminderList = () => {

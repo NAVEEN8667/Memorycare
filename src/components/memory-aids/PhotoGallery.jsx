@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FiPlus, FiX, FiUser } from "react-icons/fi";
-import "./photogallery.css";
 
 const PhotoGallery = () => {
   const [photos, setPhotos] = useState([]);

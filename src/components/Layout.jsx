@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Navbar from "./Navbar";
-import CalmModeUI from "./CalmModeUI";
 import "../styles/main.css";
 
 const Layout = ({ children, isAuthenticated, setIsAuthenticated }) => {

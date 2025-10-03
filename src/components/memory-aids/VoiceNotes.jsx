@@ -11,7 +11,6 @@ import {
   FiAlertCircle,
   FiRefreshCw,
 } from "react-icons/fi";
-import "./voicenotes.css";
 
 // Helper function to convert a blob to Base64
 const blobToBase64 = (blob) => {
