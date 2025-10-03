@@ -7,7 +7,6 @@ import {
   FiX,
   FiLoader,
 } from "react-icons/fi";
-import "./TaskList.css";
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);

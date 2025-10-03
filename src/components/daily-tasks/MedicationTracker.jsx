@@ -8,7 +8,6 @@ import {
   FiEdit,
   FiX,
 } from "react-icons/fi";
-import "./medicationtracker.css";
 
 const MedicationTracker = () => {
   const [medications, setMedications] = useState([]);

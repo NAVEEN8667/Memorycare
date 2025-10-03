@@ -1,10 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './Chatbot.css';
 
 const Chatbot = () => {
-  const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hello! How can I help you today?', time: new Date().toLocaleTimeString() }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
