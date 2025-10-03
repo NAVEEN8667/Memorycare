@@ -7,15 +7,34 @@
 
 html, body, #root { 
   height: 100%; 
+  scroll-behavior: smooth;
 }
 
 body { 
   margin: 0; 
-  background: #F7F7F7;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  color: #333333;
+  background: #0f172a;
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  color: #f1f5f9;
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4A90E2;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3A7BC8;
 }
