@@ -1,8 +1,258 @@
 // src/pages/Profile.jsx
-import { useState } from "react";
-// Assuming you have a CSS file for styling
+import { useState, useEffect } from "react";
 
 const Profile = () => {
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'profile-styles';
+    styleElement.textContent = `
+      .profile-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px;
+        background: #F7F7F7;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Arial, sans-serif;
+      }
+
+      .profile-container h1 {
+        color: #333333;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 32px;
+        text-align: center;
+      }
+
+      .profile-header {
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 24px;
+        border: 2px solid #E0E0E0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+
+      .profile-picture-container {
+        position: relative;
+      }
+
+      .profile-picture {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #4A90E2;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+      }
+
+      .image-upload {
+        margin-top: 12px;
+      }
+
+      .upload-button {
+        background: #4A90E2;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-block;
+      }
+
+      .upload-button:hover {
+        background: #3A7BC8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+      }
+
+      .profile-info {
+        flex: 1;
+      }
+
+      .profile-info h2 {
+        color: #333333;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .profile-info p {
+        color: #666666;
+        font-size: 1.0625rem;
+      }
+
+      .profile-input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #333333;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+
+      .profile-input:focus {
+        outline: none;
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+      }
+
+      .profile-details, .profile-preferences {
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 24px;
+        border: 2px solid #E0E0E0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      .profile-details h3, .profile-preferences h3 {
+        color: #333333;
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 3px solid #50E3C2;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #E0E0E0;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        color: #666666;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .detail-row span:last-child {
+        color: #333333;
+        font-size: 1rem;
+      }
+
+      .preference-item {
+        padding: 16px 0;
+        border-bottom: 1px solid #E0E0E0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .preference-item:last-child {
+        border-bottom: none;
+      }
+
+      .preference-item label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        color: #333333;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .preference-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #4A90E2;
+      }
+
+      .preference-label {
+        color: #666666;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .profile-select {
+        padding: 10px 14px;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #333333;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .profile-select:focus {
+        outline: none;
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+      }
+
+      .profile-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 32px;
+      }
+
+      .save-button, .edit-button {
+        background: #4A90E2;
+        color: white;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+      }
+
+      .save-button:hover, .edit-button:hover {
+        background: #3A7BC8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+      }
+
+      .cancel-button {
+        background: #F7F7F7;
+        color: #333333;
+        padding: 14px 32px;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: 'Segoe UI', Arial, sans-serif;
+      }
+
+      .cancel-button:hover {
+        background: #E0E0E0;
+        transform: translateY(-2px);
+      }
+    `;
+    
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      const existingStyle = document.getElementById('profile-styles');
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, []);
+
   // Sample user data - in a real app, this would come from your backend or auth context
   const [user, setUser] = useState({
     name: "John Doe",

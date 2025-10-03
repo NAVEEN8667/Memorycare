@@ -15,18 +15,21 @@ const RoutinePlanner = () => {
     styleElement.id = 'routine-planner-styles';
     styleElement.textContent = `
       .routine-planner {
-        max-width: 800px;
+        max-width: 900px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 24px;
       }
 
       .routine-planner h2 {
-        color: #1f2937;
+        color: #333333;
+        font-size: 2rem;
+        font-weight: 600;
         margin-bottom: 8px;
       }
 
       .subtitle {
-        color: #6b7280;
+        color: #666666;
+        font-size: 1.0625rem;
         margin-bottom: 24px;
       }
 
@@ -36,13 +39,14 @@ const RoutinePlanner = () => {
         align-items: center;
         justify-content: center;
         padding: 40px;
-        color: #6b7280;
+        color: #666666;
       }
 
       .spinner {
         animation: spin 1s linear infinite;
         font-size: 2rem;
         margin-bottom: 12px;
+        color: #4A90E2;
       }
 
       @keyframes spin {
@@ -51,15 +55,16 @@ const RoutinePlanner = () => {
       }
 
       .error-message {
-        background: #fee2e2;
-        border: 1px solid #fca5a5;
-        color: #991b1b;
-        padding: 12px 16px;
+        background: #FFF3E0;
+        border: 2px solid #F5A623;
+        color: #8B5A00;
+        padding: 14px 18px;
         border-radius: 8px;
         margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        box-shadow: 0 2px 8px rgba(245, 166, 35, 0.15);
       }
 
       .error-actions {
@@ -70,23 +75,25 @@ const RoutinePlanner = () => {
       .dismiss-btn, .test-btn {
         background: transparent;
         border: none;
-        color: #991b1b;
+        color: #8B5A00;
         cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: background 0.2s;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.2s;
       }
 
       .dismiss-btn:hover, .test-btn:hover {
-        background: rgba(0,0,0,0.1);
+        background: rgba(245, 166, 35, 0.2);
       }
 
       .routine-form {
-        background: white;
-        border: 1px solid #e5e7eb;
+        background: #FFFFFF;
+        border: 2px solid #E0E0E0;
         border-radius: 12px;
-        padding: 24px;
+        padding: 28px;
         margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       }
 
       .form-group {
@@ -95,37 +102,44 @@ const RoutinePlanner = () => {
 
       .form-group label {
         display: block;
-        color: #374151;
-        font-weight: 500;
-        margin-bottom: 6px;
+        color: #333333;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
       }
 
       .form-group input[type="time"],
       .form-group input[type="text"] {
         width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #d1d5db;
+        padding: 12px 14px;
+        border: 2px solid #E0E0E0;
         border-radius: 8px;
         font-size: 1rem;
-        transition: border-color 0.2s;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #333333;
+        transition: all 0.2s;
       }
 
       .form-group input:focus {
         outline: none;
-        border-color: #4F46E5;
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
       }
 
       .checkbox-group label {
         display: flex;
         align-items: center;
         cursor: pointer;
+        color: #333333;
+        font-weight: 600;
       }
 
       .checkbox-group input[type="checkbox"] {
         margin-right: 8px;
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         cursor: pointer;
+        accent-color: #4A90E2;
       }
 
       .form-actions {
@@ -135,34 +149,39 @@ const RoutinePlanner = () => {
       }
 
       .btn {
-        padding: 10px 20px;
+        padding: 12px 24px;
         border: none;
         border-radius: 8px;
-        font-size: 0.95rem;
+        font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 8px;
-        transition: all 0.2s;
+        transition: all 0.3s;
+        font-family: 'Segoe UI', Arial, sans-serif;
       }
 
       .btn-primary {
-        background: #4F46E5;
+        background: #4A90E2;
         color: white;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
       }
 
       .btn-primary:hover {
-        background: #4338ca;
+        background: #3A7BC8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
       }
 
       .btn-secondary {
-        background: #e5e7eb;
-        color: #374151;
+        background: #F7F7F7;
+        color: #333333;
+        border: 2px solid #E0E0E0;
       }
 
       .btn-secondary:hover {
-        background: #d1d5db;
+        background: #E0E0E0;
       }
 
       .routine-list {
@@ -173,54 +192,65 @@ const RoutinePlanner = () => {
 
       .empty-state {
         text-align: center;
-        padding: 40px;
-        color: #6b7280;
+        padding: 50px;
+        color: #666666;
+        background: #FFFFFF;
+        border-radius: 12px;
+        border: 2px dashed #E0E0E0;
       }
 
       .empty-state p {
         margin-bottom: 16px;
+        font-size: 1.0625rem;
       }
 
       .routine-item {
-        background: white;
-        border: 1px solid #e5e7eb;
+        background: #FFFFFF;
+        border: 2px solid #E0E0E0;
         border-radius: 8px;
-        padding: 16px;
+        padding: 18px;
         display: flex;
         align-items: center;
         gap: 16px;
-        transition: all 0.2s;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       }
 
       .routine-item:hover {
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.15);
+        transform: translateX(4px);
+        border-color: #4A90E2;
       }
 
       .routine-item.completed {
         opacity: 0.6;
-        background: #f9fafb;
+        background: #F7F7F7;
       }
 
       .routine-item.important {
-        border-left: 4px solid #ef4444;
+        border-left: 4px solid #F5A623;
+        background: #FFF9F0;
       }
 
       .routine-time {
         display: flex;
         align-items: center;
         gap: 6px;
-        color: #4F46E5;
+        color: #4A90E2;
         font-weight: 600;
-        min-width: 100px;
+        min-width: 110px;
+        font-size: 1rem;
       }
 
       .routine-activity {
         flex: 1;
-        color: #1f2937;
+        color: #333333;
+        font-size: 1rem;
       }
 
       .routine-item.completed .routine-activity {
         text-decoration: line-through;
+        color: #666666;
       }
 
       .routine-actions {
@@ -230,50 +260,53 @@ const RoutinePlanner = () => {
 
       .status-btn, .edit-btn, .delete-btn {
         background: transparent;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
         padding: 8px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        transition: all 0.3s;
       }
 
       .status-btn {
-        color: #6b7280;
+        color: #666666;
       }
 
       .status-btn.completed {
-        background: #10b981;
-        border-color: #10b981;
+        background: #50E3C2;
+        border-color: #50E3C2;
         color: white;
       }
 
       .status-btn:hover {
-        background: #10b981;
-        border-color: #10b981;
+        background: #50E3C2;
+        border-color: #50E3C2;
         color: white;
+        transform: scale(1.1);
       }
 
       .edit-btn {
-        color: #4F46E5;
+        color: #4A90E2;
       }
 
       .edit-btn:hover {
-        background: #4F46E5;
-        border-color: #4F46E5;
+        background: #4A90E2;
+        border-color: #4A90E2;
         color: white;
+        transform: scale(1.1);
       }
 
       .delete-btn {
-        color: #ef4444;
+        color: #F5A623;
       }
 
       .delete-btn:hover {
-        background: #ef4444;
-        border-color: #ef4444;
+        background: #F5A623;
+        border-color: #F5A623;
         color: white;
+        transform: scale(1.1);
       }
     `;
     
