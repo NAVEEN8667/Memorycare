@@ -42,22 +42,22 @@ const Home = () => {
             <div className="card-stats">
               <span>3 tasks today</span>
               <span>2 completed</span>
-            </div>
-          </div>
-        </Link>
-
         <Link to="/cognitive-exercises" className="feature-card">
           <div className="card-content">
-            <div className="card-icon">🧠</div>
-            <h2>Cognitive Exercises</h2>
-            <p>
-              Engage in memory games and word recall activities to keep your
-              mind active. Track your progress over time.
-            </p>
-            <div className="card-stats">
-              <span>Daily streak: 5 days</span>
-              <span>Last score: 85%</span>
-            </div>
+            <Link 
+              to="/memory-aids" 
+              style={styles.featureCard}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.12)';
+                e.currentTarget.style.borderColor = '#4F46E5';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
+                e.currentTarget.style.borderColor = '#e5e7eb';
+              }}
+            ></Link>
           </div>
         </Link>
       </div>
@@ -65,7 +65,6 @@ const Home = () => {
       <div className="recent-activity">
         <h3>Recent Activity</h3>
         <div className="activity-list">
-          <div className="activity-item">
             <span className="activity-time">Today, 9:30 AM</span>
             <span className="activity-text">
               Completed "Word Match" exercise
